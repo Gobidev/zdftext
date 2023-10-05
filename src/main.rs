@@ -28,17 +28,19 @@ impl Display for Text {
 
 impl Text {
     fn from_element(element: Element) -> Self {
-        let element = if let Some(Node::Element(e)) = element.children.get(0) {
+        let use_parent_bg: bool;
+        let text_element = if let Some(Node::Element(e)) = element.children.get(0) {
+            use_parent_bg = true;
             e.clone()
         } else {
-            element
+            use_parent_bg = false;
+            element.clone()
         };
 
-        let classes = element.classes;
         let mut fg = 0;
         let mut bg = 0;
         let mut text = "".to_string();
-        for class in classes {
+        for class in text_element.classes {
             if class.starts_with("bc") {
                 let class_base = class.chars().skip(2).collect::<String>();
                 bg = u32::from_str_radix(&class_base, 16).expect("Invalid color");
@@ -47,8 +49,16 @@ impl Text {
                 fg = u32::from_str_radix(&class_base, 16).expect("Invalid color");
             }
         }
+        if use_parent_bg {
+            for class in element.classes {
+                if class.starts_with("bc") {
+                    let class_base = class.chars().skip(2).collect::<String>();
+                    bg = u32::from_str_radix(&class_base, 16).expect("Invalid color");
+                }
+            }
+        }
 
-        if let Some(Node::Text(t)) = element.children.get(0) {
+        if let Some(Node::Text(t)) = text_element.children.get(0) {
             text = t.clone();
         }
 
