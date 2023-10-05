@@ -28,6 +28,7 @@ impl Display for Text {
 
 impl Text {
     fn from_element(element: Element) -> Self {
+        // todo: rewrite this mess
         let use_parent_bg: bool;
         let text_element = if let Some(Node::Element(e)) = element.children.get(0) {
             use_parent_bg = true;
@@ -63,8 +64,6 @@ impl Text {
         }
 
         let text = decode_html_entities(&text).to_string();
-        // let text = text.replace("&nbsp;", " ");
-
         Self {
             text,
             fg_color: fg,
@@ -93,10 +92,10 @@ fn show_dom(dom: Dom) {
                 .iter()
                 .map(|e| match e {
                     Node::Element(e) => Text::from_element(e.clone()),
-                    _ => panic!("asdf2"),
+                    _ => panic!("Parser error"),
                 })
                 .collect(),
-            _ => panic!("asdf"),
+            _ => panic!("Parser error"),
         })
         .collect();
     for line in ids {
