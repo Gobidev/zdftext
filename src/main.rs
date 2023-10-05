@@ -133,6 +133,7 @@ async fn main() {
             continue;
         };
         show_dom(parsed_response);
+        println!("Enter number: ");
 
         number_before = number;
         number = String::new();
