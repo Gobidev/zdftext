@@ -1,6 +1,5 @@
 use html_escape::decode_html_entities;
 use html_parser::{Dom, Element, Node};
-use once_cell::sync::Lazy;
 use owo_colors::OwoColorize;
 use std::{fmt::Display, io};
 
@@ -106,22 +105,17 @@ fn show_dom(dom: Dom) {
     }
 }
 
-static CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
-
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+fn main() {
     let mut number = "100".to_string();
     let mut number_before = number.clone();
     loop {
-        let response = CLIENT
+        let response = reqwest::blocking::Client::new()
             .get(format!(
                 "https://teletext.zdf.de/teletext/zdf/seiten/klassisch/{number}.html"
             ))
             .send()
-            .await
             .unwrap()
             .text()
-            .await
             .unwrap();
 
         let parsed_response = if let Ok(v) = Dom::parse(&response) {
