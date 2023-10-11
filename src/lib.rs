@@ -12,14 +12,12 @@ pub struct TeletextText {
 
 #[derive(Debug)]
 pub enum Error {
-    NoChild,
     InvalidChild,
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::NoChild => write!(f, "Element has no child"),
             Error::InvalidChild => write!(f, "Element has invalid child"),
         }
     }
