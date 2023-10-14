@@ -1,4 +1,5 @@
 use html_parser::{Dom, Element, Node};
+use once_cell::sync::Lazy;
 use std::{error::Error, io};
 use zdftext::TeletextText;
 
@@ -37,18 +38,21 @@ fn show_dom(dom: Dom) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn main() {
+static CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<(), Box<dyn Error>> {
     let mut number = "100".to_string();
     let mut number_before = number.clone();
     loop {
-        let response = reqwest::blocking::Client::new()
+        let response = CLIENT
             .get(format!(
                 "https://teletext.zdf.de/teletext/zdf/seiten/klassisch/{number}.html"
             ))
             .send()
-            .unwrap()
+            .await?
             .text()
-            .unwrap();
+            .await?;
 
         let parsed_response = if let Ok(v) = Dom::parse(&response) {
             v
