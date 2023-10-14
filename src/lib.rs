@@ -3,6 +3,8 @@ use html_parser::Element;
 use owo_colors::{OwoColorize, Rgb};
 use std::fmt::Display;
 
+mod char_translations;
+
 #[derive(Debug, Clone)]
 pub struct TeletextText {
     pub text: String,
@@ -60,17 +62,33 @@ impl Default for TeletextText {
     }
 }
 
-impl TeletextText {
+fn convert_linedraw_char(linedraw_char: char) -> char {
+    if let Some(c) = char_translations::CHAR_TRANSLATIONS.get(&(linedraw_char as u32))
+    {
+        char::from_u32(*c).unwrap()
+    } else {
+        linedraw_char
+    }
+}
 
+fn convert_linedraw_string(text: &str) -> String {
+    text.chars().map(convert_linedraw_char).collect()
+}
+
+impl TeletextText {
     pub fn new() -> Self {
-        Self { text: "".to_string(), fg_color: 0, bg_color: 0 }
+        Self {
+            text: "".to_string(),
+            fg_color: 0,
+            bg_color: 0,
+        }
     }
 
     pub fn from_element(element: &Element) -> Result<Self, Error> {
         if element.name == "br" {
             return Ok(Self::new());
         }
-        let text: String;
+        let mut text: String;
         let mut fg_color;
         let bg_color;
         (fg_color, bg_color) = get_colors_from_classes(&element.classes);
@@ -91,7 +109,15 @@ impl TeletextText {
         }
         let fg_color = fg_color.unwrap_or(0xFFFFFF);
         let bg_color = bg_color.unwrap_or(0x000000);
-        let text = decode_html_entities(&text).to_string();
+
+        text = decode_html_entities(&text).to_string();
+        // check for special characters
+        if element
+            .classes
+            .contains(&"teletextlinedrawregular".to_string())
+        {
+            text = convert_linedraw_string(&text);
+        }
         Ok(Self {
             text,
             fg_color,
