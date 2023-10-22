@@ -1,7 +1,10 @@
 use html_escape::decode_html_entities;
 use html_parser::Element;
-use owo_colors::{OwoColorize, Rgb};
 use std::fmt::Display;
+use termion::{
+    color::{self, Rgb},
+    style,
+};
 
 mod char_translations;
 
@@ -50,9 +53,14 @@ fn extract_colors(combined_colors: u32) -> Rgb {
 
 impl Display for TeletextText {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let colored_text = self.text.on_color(extract_colors(self.bg_color));
-        let colored_text = colored_text.color(extract_colors(self.fg_color));
-        write!(f, "{colored_text}")
+        write!(
+            f,
+            "{}{}{}{}",
+            color::Bg(extract_colors(self.bg_color)),
+            color::Fg(extract_colors(self.fg_color)),
+            self.text,
+            style::Reset
+        )
     }
 }
 
@@ -63,8 +71,7 @@ impl Default for TeletextText {
 }
 
 fn convert_linedraw_char(linedraw_char: char) -> char {
-    if let Some(c) = char_translations::CHAR_TRANSLATIONS.get(&(linedraw_char as u32))
-    {
+    if let Some(c) = char_translations::CHAR_TRANSLATIONS.get(&(linedraw_char as u32)) {
         char::from_u32(*c).unwrap()
     } else {
         linedraw_char
