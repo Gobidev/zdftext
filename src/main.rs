@@ -1,6 +1,6 @@
 use html_parser::{Dom, Element, Node};
 use std::{error::Error, io};
-use zdftext::{request_teletext, Channel, TeletextText};
+use zdftext::{request_teletext, Channel, TeletextText, Page};
 
 fn get_element(input: Option<&Node>) -> &Element {
     if let Node::Element(e) = input.expect("Parser error") {
@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut number = 100;
     let mut number_before = number;
     loop {
-        let response = request_teletext(Channel::DREISAT, number).await;
+        let response = request_teletext(Channel::ZDF, Page::new(100)).await;
         let parsed_response = if let Ok(v) = Dom::parse(&response?) {
             v
         } else {

@@ -41,6 +41,28 @@ impl Display for Channel {
     }
 }
 
+pub struct Page {
+    base_page: u16,
+    sub_page: u8,
+}
+
+impl Page {
+    pub fn new(page: u16) -> Self {
+        Self { base_page: page, sub_page: 0}
+    }
+}
+
+impl Display for Page {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.sub_page == 0 {
+            write!(f, "{}", self.base_page)
+        } else {
+            write!(f, "{}_{}", self.base_page, self.sub_page)
+        }
+    }
+}
+
+
 #[derive(Debug)]
 pub enum Error {
     InvalidChild,
@@ -79,7 +101,7 @@ fn extract_colors(combined_colors: u32) -> Rgb {
 
 pub async fn request_teletext(
     channel: Channel,
-    page: u16,
+    page: Page,
 ) -> Result<String, Box<dyn std::error::Error>> {
     Ok(CLIENT
         .get(format!(
