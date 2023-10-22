@@ -1,6 +1,6 @@
 use html_parser::{Dom, Element, Node};
 use std::{error::Error, io};
-use zdftext::{request_teletext, Channel, TeletextText, Page};
+use zdftext::{request_teletext, Channel, Page, TeletextText};
 
 fn get_element(input: Option<&Node>) -> &Element {
     if let Node::Element(e) = input.expect("Parser error") {

@@ -32,7 +32,7 @@ impl Display for Channel {
             f,
             "{}",
             match self {
-                &Channel::ZDF => "zdf",
+                Channel::ZDF => "zdf",
                 Channel::ZDFINFO => "zdfinfo",
                 Channel::ZDFNEO => "zdfneo",
                 Channel::DREISAT => "3sat",
@@ -48,7 +48,10 @@ pub struct Page {
 
 impl Page {
     pub fn new(page: u16) -> Self {
-        Self { base_page: page, sub_page: 0}
+        Self {
+            base_page: page,
+            sub_page: 0,
+        }
     }
 }
 
@@ -61,7 +64,6 @@ impl Display for Page {
         }
     }
 }
-
 
 #[derive(Debug)]
 pub enum Error {
