@@ -1,7 +1,6 @@
 use html_parser::{Dom, Element, Node};
-use once_cell::sync::Lazy;
 use std::{error::Error, io};
-use zdftext::TeletextText;
+use zdftext::{request_teletext, Channel, TeletextText};
 
 fn get_element(input: Option<&Node>) -> &Element {
     if let Node::Element(e) = input.expect("Parser error") {
@@ -38,36 +37,27 @@ fn show_dom(dom: Dom) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-static CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
-
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let mut number = "100".to_string();
-    let mut number_before = number.clone();
+    let mut number = 100;
+    let mut number_before = number;
     loop {
-        let response = CLIENT
-            .get(format!(
-                "https://teletext.zdf.de/teletext/zdf/seiten/klassisch/{number}.html"
-            ))
-            .send()
-            .await?
-            .text()
-            .await?;
-
-        let parsed_response = if let Ok(v) = Dom::parse(&response) {
+        let response = request_teletext(Channel::DREISAT, number).await;
+        let parsed_response = if let Ok(v) = Dom::parse(&response?) {
             v
         } else {
             println!("Error");
-            number = number_before.clone();
+            number = number_before;
             continue;
         };
         drop(show_dom(parsed_response));
         println!("Enter number: ");
 
         number_before = number;
-        number = String::new();
+        let mut input = String::new();
         io::stdin()
-            .read_line(&mut number)
+            .read_line(&mut input)
             .expect("Failed to read line");
+        number = input.trim().parse()?;
     }
 }

@@ -1,5 +1,6 @@
 use html_escape::decode_html_entities;
 use html_parser::Element;
+use once_cell::sync::Lazy;
 use std::fmt::Display;
 use termion::{
     color::{self, Rgb},
@@ -8,11 +9,36 @@ use termion::{
 
 mod char_translations;
 
+static CLIENT: Lazy<reqwest::Client> = Lazy::new(reqwest::Client::new);
+
 #[derive(Debug, Clone)]
 pub struct TeletextText {
     pub text: String,
     pub fg_color: u32,
     pub bg_color: u32,
+}
+
+#[derive(Debug, Clone)]
+pub enum Channel {
+    ZDF,
+    ZDFINFO,
+    ZDFNEO,
+    DREISAT,
+}
+
+impl Display for Channel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                &Channel::ZDF => "zdf",
+                Channel::ZDFINFO => "zdfinfo",
+                Channel::ZDFNEO => "zdfneo",
+                Channel::DREISAT => "3sat",
+            }
+        )
+    }
 }
 
 #[derive(Debug)]
@@ -49,6 +75,20 @@ fn extract_colors(combined_colors: u32) -> Rgb {
     let g = ((combined_colors >> 8) & 0xFF) as u8;
     let b = (combined_colors & 0xFF) as u8;
     Rgb(r, g, b)
+}
+
+pub async fn request_teletext(
+    channel: Channel,
+    page: u16,
+) -> Result<String, Box<dyn std::error::Error>> {
+    Ok(CLIENT
+        .get(format!(
+            "https://teletext.zdf.de/teletext/{channel}/seiten/klassisch/{page}.html"
+        ))
+        .send()
+        .await?
+        .text()
+        .await?)
 }
 
 impl Display for TeletextText {
