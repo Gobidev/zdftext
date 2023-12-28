@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mut number = 100;
     let mut number_before = number;
     loop {
-        let response = request_teletext(Channel::ZDF, Page::new(100)).await;
+        let response = request_teletext(Channel::ZDF, Page::new(number)).await;
         let parsed_response = if let Ok(v) = Dom::parse(&response?) {
             v
         } else {
